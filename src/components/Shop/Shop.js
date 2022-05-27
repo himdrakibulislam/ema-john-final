@@ -11,17 +11,19 @@ const Shop = () => {
     const [cart, setCart] = useCart(products);
     // products to be rendered on the UI
     const [displayProducts, setDisplayProducts] = useState([]);
-
+    const [pageCount,setPageCount] = useState(0);
+    const [pages,setPages] = useState();
     useEffect(() => {
-        fetch('./products.json')
+        fetch(`http://localhost:5000/products?page=${pages}&&size=${size}`)
             .then(res => res.json())
             .then(data => {
                 setProducts(data);
-                setDisplayProducts(data);
+                setDisplayProducts(data.products);
+                const count = data.count;
+                const pageNumber = Math.ceil(count/size)
+                setPageCount(pageNumber)
             });
-    }, []);
-
-
+    }, [pages]);
 
     const handleAddToCart = (product) => {
         const exists = cart.find(pd => pd.key === product.key);
@@ -48,7 +50,8 @@ const Shop = () => {
 
         setDisplayProducts(matchedProducts);
     }
-
+    const page = [...Array(pageCount).keys()];
+    const size = 10;
     return (
         <>
             <div className="search-container">
@@ -61,12 +64,25 @@ const Shop = () => {
                 <div className="product-container">
                     {
                         displayProducts.map(product => <Product
-                            key={product.key}
+                            key={product._id}
                             product={product}
                             handleAddToCart={handleAddToCart}
                         >
                         </Product>)
                     }
+                    <div className="pagination">
+                        {
+                            page.map(number => <button key={number} className={number === pages?'selected': ''} onClick={()=>setPages(number)} >{number+1}</button>)
+                        }
+                        <div class="dropdown">
+                    <button class="dropbtn">See Items</button>
+                    <div class="dropdown-content">
+                        <p>10</p>
+                        <p>20</p>
+                        <p>30</p>
+                    </div>
+                    </div>
+                </div>
                 </div>
                 <div className="cart-container">
                     <Cart cart={cart}>
@@ -75,7 +91,9 @@ const Shop = () => {
                         </Link>
                     </Cart>
                 </div>
+               
             </div>
+            
         </>
     );
 };
